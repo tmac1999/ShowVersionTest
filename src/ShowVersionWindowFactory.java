@@ -1,9 +1,18 @@
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.util.EditorHelper;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.impl.view.EditorView;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.vcs.changes.ChangesViewManager;
+import com.intellij.openapi.vcs.changes.ui.ChangesViewContentManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.FileElement;
 import com.intellij.psi.search.FilenameIndex;
@@ -89,11 +98,16 @@ public class ShowVersionWindowFactory implements ToolWindowFactory{
                                         String replace = versionName.replace("\"", "");
                                         if(judgeContainsStr(replace.trim())){
                                             //contains English letter
-                                            String[] strs = text.split(replace);//fixme find the real version name
-                                            String versionName = strs[1].substring(0, 10);
-                                            replace = versionName.replace("\"", "");
+                                            String[] strs = text.split(replace.trim());//
+                                            //获得分隔后的每段的第一行，如果此行包含“=”和“\"”，则说明此行含有versionName
+                                            for (String str :strs){
+                                                String firstLine = str.split("\\n")[0];
+                                                if (firstLine.contains("=")){
+                                                    replace = firstLine.replace("=", "");
+                                                }
+                                            }
                                         }
-                                        setText(gb,psiFile.getParent().getName()+":"+replace);
+                                        setText(gb,psiFile.getParent().getName()+":"+replace,psiFile);
 
                                     }
                                 });
@@ -107,46 +121,55 @@ public class ShowVersionWindowFactory implements ToolWindowFactory{
 
         }
 
-        private void setText(GridBagConstraints gb,String text) {
-            TextArea textArea = new TextArea(text);
-            textArea.setSize(150,130);
-            textArea.setEnabled(false);
-            textArea.setFont(new Font("黑体",Font.BOLD,16));
+        private void setText(GridBagConstraints gb,String text,PsiFile psiFile) {
 
+            //PsiFile psiFile = e.getData(PlatformDataKeys.PSI_FILE);
+
+            TextArea textArea = new TextArea(text);
+            textArea.setSize(150,50);
+            //textArea.setEnabled(false);
+            textArea.setFont(new Font("黑体",Font.BOLD,16));
+            //textArea.setForeground(Color.WHITE);
+            //textArea.setBackground(Color.black);
             textArea.addMouseListener(new MouseListener() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    int clickCount = e.getClickCount();
-                    Point point = e.getPoint();
-                    Messages.showMessageDialog(text, "Information", Messages.getInformationIcon());
+//                    int clickCount = e.getClickCount();
+//                    Point point = e.getPoint();
+//                    Messages.showMessageDialog(text, "Information", Messages.getInformationIcon());
+                    if (psiFile != null) {
+                       // PsiFile[] filesByName = FilenameIndex.getFilesByName(project, psiFile.getName(), GlobalSearchScope.fileScope(psiFile));
+                        ProjectView.getInstance(project).selectPsiElement(psiFile, true);
+
+                        //ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ChangesViewContentManager.TOOLWINDOW_ID);
+                        //PsiDocumentManager.getInstance(project).getDocument(psiFile)
+//                        if (!window.isVisible()) {
+//                            window.activate(() -> ChangesViewManager.getInstance(project).selectFile(psiFile.getVirtualFile()));
+//
+//                        }
+                        FileEditor editor = EditorHelper.openInEditor(psiFile, false);
+                        if (editor != null) {
+                            ToolWindowManager.getInstance(project).activateEditorComponent();
+                        }
+                    } else {
+                        Messages.showMessageDialog("No file chosen or No file found .\nNavigator Bar will show your chosen file(Recently we didnt support file dir).\n Github:https://github.com/tmac1999/", "For any questions ,please write an issue in github", Messages.getInformationIcon());
+                    }
                 }
 
                 @Override
                 public void mousePressed(MouseEvent e) {
-                    int clickCount = e.getClickCount();
-                    Point point = e.getPoint();
-                    Messages.showMessageDialog(text, "Information", Messages.getInformationIcon());
                 }
 
                 @Override
                 public void mouseReleased(MouseEvent e) {
-                    int clickCount = e.getClickCount();
-                    Point point = e.getPoint();
-                    Messages.showMessageDialog(text, "Information", Messages.getInformationIcon());
                 }
 
                 @Override
                 public void mouseEntered(MouseEvent e) {
-                    int clickCount = e.getClickCount();
-                    Point point = e.getPoint();
-                    Messages.showMessageDialog(text, "Information", Messages.getInformationIcon());
                 }
 
                 @Override
                 public void mouseExited(MouseEvent e) {
-                    int clickCount = e.getClickCount();
-                    Point point = e.getPoint();
-                    Messages.showMessageDialog(text, "Information", Messages.getInformationIcon());
                 }
             });
 
