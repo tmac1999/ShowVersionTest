@@ -1,7 +1,7 @@
 <idea-plugin version="2">
     <id>com.mrz.showversion</id>
     <name>ShowVersion</name>
-    <version>1.1</version>
+    <version>1.2</version>
     <vendor email="119141701@qq.com" url="https://github.com/tmac1999/ShowVersionTest">ShowVersion</vendor>
 
     <description><![CDATA[
@@ -25,7 +25,7 @@
     <!-- uncomment to enable plugin in all products
     <depends>com.intellij.modules.lang</depends>
     -->
-
+    <depends>com.intellij.modules.lang</depends>
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
         <toolWindow id="ShowVersion" anchor="left"
